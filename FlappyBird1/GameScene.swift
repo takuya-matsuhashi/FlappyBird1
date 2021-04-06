@@ -358,7 +358,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 衝突のカテゴリー設定
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory
+        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | itemCategory
       
         
         
@@ -482,10 +482,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             itemScore += 1
             itemScoreLabelNode.text = "itemScore:\(itemScore)"
             
-     
+            if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory {
+                contact.bodyA.node?.removeFromParent()
+            }
+            if (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
+                contact.bodyB.node?.removeFromParent()
+            }
+
             run(sound)
             
-            
+          
             
             // ベストアイテムスコア更新か確認する --- ここから ---
             var bestItemScore = userDefaults.integer(forKey: "BEST ITEM")
