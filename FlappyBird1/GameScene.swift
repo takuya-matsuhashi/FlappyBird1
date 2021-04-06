@@ -68,6 +68,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupItem()
         setupItemScoreLabel()
         
+        setupScoreLabel()
     }
     
     func setupGround() {
@@ -155,7 +156,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func setupItem() {
         // アイテム画像を読み込む
-        let itemTexture = SKTexture(imageNamed: "item")
+        let itemTexture = SKTexture(imageNamed: "like_exist")
         itemTexture.filteringMode = .linear
         
         // 移動する距離を計算
@@ -298,6 +299,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // 衝突の時に動かないように設定する
             upper.physicsBody?.isDynamic = false
             
+            wall.addChild(upper)
+            
             
             // スコアアップ用のノード
             let scoreNode = SKNode()
@@ -312,8 +315,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
             wall.addChild(scoreNode)
             
-            
-            wall.addChild(upper)
             
             wall.run(wallAnimation)
             
@@ -354,7 +355,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 衝突のカテゴリー設定
         bird.physicsBody?.categoryBitMask = birdCategory
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
-        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | itemCategory
+        bird.physicsBody?.contactTestBitMask = groundCategory | wallCategory | scoreCategory
       
         
         
@@ -454,10 +455,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             score += 1
             scoreLabelNode.text = "Score:\(score)"    // ←追加
             
-            //　課題　追加12
-            // アイテムスコア用の物体と衝突した
-            
-            
             
             // ベストスコア更新か確認する --- ここから ---
             var bestScore = userDefaults.integer(forKey: "BEST")
@@ -471,20 +468,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 userDefaults.synchronize()
             }
             
-            //  ★ 課題追加箇所アイテム衝突後　消す
-            
+           
+            //　課題　追加12
+            // アイテムスコア用の物体と衝突した
             
         } else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
+            
             
             print("ItemScoreUp")
             itemScore += 1
             itemScoreLabelNode.text = "itemScore:\(itemScore)"
+            
+            // ベストアイテムスコア更新か確認する --- ここから ---
+            var bestItemScore = userDefaults.integer(forKey: "BEST")
+            
+            if itemScore > bestItemScore {
+                bestItemScore = itemScore
+                
+                bestItemScoreLabelNode.text = "Best itemScore:\(bestItemScore)"    // ←追加
+                
+                userDefaults.set(bestItemScore, forKey: "BEST")
+                userDefaults.synchronize()
+            }
+                
+            //  ★ 課題追加箇所 アイテム衝突後　消す
+           
+            
             if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory {
                 contact.bodyA.node?.removeFromParent()
             }
             if (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
                 contact.bodyB.node?.removeFromParent()
             }
+            
             run(sound)
             
             
