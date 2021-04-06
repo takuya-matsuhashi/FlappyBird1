@@ -1,8 +1,8 @@
 //
 //  SceneDelegate.swift
-//  FlappyBird1
+//  FlappyBird
 //
-//  Created by 松橋拓哉 on 2021/04/06.
+//  Created by 松橋拓哉 on 2021/02/21.
 //
 
 import UIKit
