@@ -165,8 +165,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         
         
-        // ？  画面外まで移動するアクションを作成
-        let moveItem = SKAction.moveBy(x: -movingDistance, y: 0, duration:4)
+        // ？  画面外まで移動するアクションを作成 duration:アイテムの動く速度(小さい数字ほどはやい)
+        let moveItem = SKAction.moveBy(x: -movingDistance, y: 10, duration:2)
         
         
         
@@ -180,44 +180,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 鳥の画像サイズを取得
         let birdSize = SKTexture(imageNamed: "bird_a").size()
         
-        // アイテムの位置の上下の振り幅を鳥のサイズの4倍とする
-        let item_length = birdSize.height * 4
+        // アイテムの位置の上下の振り幅を鳥のサイズの5倍とする
+        let item_length = birdSize.height * 5
         
         // アイテムのY軸下限位置(中央位置から下方向の最大振れ幅で下のアイテムを表示する位置)を計算
         
         let groundSize = SKTexture(imageNamed: "ground").size()
         let center_y = groundSize.height + (self.frame.size.height - groundSize.height) / 2
-        let under_item_lowest_y = center_y - item_length / 2 - itemTexture.size().height / 2 - item_length / 2
+        let under_item_lowest_y = center_y - itemTexture.size().height / 2 - item_length / 2
         
         
         // アイテムを生成するアクションを作成
         let createItemAnimation = SKAction.run({
-            // アイテム関連のノードを乗せるノードを作成
-            let item = SKNode()
-            item.position = CGPoint(x: self.frame.size.width + itemTexture.size().width / 2, y: 0)
-            item.zPosition = -50 // 雲より手前、地面より奥
             
+            // アイテム関連のノードを乗せるノードを作成
+            
+         
             // 0〜random_y_rangeまでのランダム値を生成
             let random_y = CGFloat.random(in: 0..<item_length)
+            
             // Y軸の下限にランダムな値を足して、下のアイテムのY座標を決定
+            
             let under_item_y = under_item_lowest_y + random_y
             
-            // 下側のアイテムを作成
-            let underItem = SKSpriteNode(texture: itemTexture)
-            underItem.position = CGPoint(x: 0, y: under_item_y)
             
+            // 下側のアイテムを作成 xで横軸のアイテム出現位置を決める
+            let item = SKSpriteNode(texture: itemTexture)
+            item.position = CGPoint(x: 400, y: under_item_y)
+            
+            item.zPosition = -50 // 雲より手前、地面より奥
             
             // スプライトに物理演算を設定する
-            underItem.physicsBody = SKPhysicsBody(rectangleOf: itemTexture.size())
+            item.physicsBody = SKPhysicsBody(circleOfRadius: itemTexture.size().width / 2)
             
-            underItem.physicsBody?.categoryBitMask = self.itemCategory
+            item.physicsBody?.categoryBitMask = self.itemCategory
             // 衝突の時に動かないように設定する
-            underItem.physicsBody?.isDynamic = false
+            item.physicsBody?.isDynamic = false
             
             
-            underItem.run(itemAnimation)
+            item.run(itemAnimation)
             
-            self.itemNode.addChild(underItem)
+            self.itemNode.addChild(item)
         })
         
         let waitAnimation = SKAction.wait(forDuration: 1)
@@ -435,15 +438,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bestItemScoreLabelNode.zPosition = 100 // 一番手前に表示する
         bestItemScoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
         
-        let bestItemScore = userDefaults.integer(forKey: "BEST")
+        let bestItemScore = userDefaults.integer(forKey: "BEST ITEM")
         bestItemScoreLabelNode.text = "Best ItemScore:\(bestItemScore)"
         self.addChild(bestItemScoreLabelNode)
     }
     
-    
+   
     //　✴︎アイテム　使用部位 SKPhysicsContactDelegateのメソッド。衝突したときに呼ばれる
     func didBegin(_ contact: SKPhysicsContact) {
-        
+        print("didBegin is called")
         // ゲームオーバーのときは何もしない
         if scrollNode.speed <= 0 {
             return
@@ -479,30 +482,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             itemScore += 1
             itemScoreLabelNode.text = "itemScore:\(itemScore)"
             
+     
+            run(sound)
+            
+            
+            
             // ベストアイテムスコア更新か確認する --- ここから ---
-            var bestItemScore = userDefaults.integer(forKey: "BEST")
+            var bestItemScore = userDefaults.integer(forKey: "BEST ITEM")
+            
+    
             
             if itemScore > bestItemScore {
                 bestItemScore = itemScore
                 
                 bestItemScoreLabelNode.text = "Best itemScore:\(bestItemScore)"    // ←追加
                 
-                userDefaults.set(bestItemScore, forKey: "BEST")
+                userDefaults.set(bestItemScore, forKey: "BEST ITEM")
                 userDefaults.synchronize()
             }
                 
             //  ★ 課題追加箇所 アイテム衝突後　消す
-           
-            
-            if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory {
-                contact.bodyA.node?.removeFromParent()
-            }
-            if (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
-                contact.bodyB.node?.removeFromParent()
-            }
-            
-            run(sound)
-            
+          
             
             
             
